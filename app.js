@@ -63,22 +63,43 @@ app.put('/users/:id', (request, response) => {
     const lastName = request.body.lastName;
     const isActive = request.body.isActive;
 
-    User.findByIdAndUpdate(id,
-        {$set:
-                {
-                    firstName: firstName,
-                    lastName: lastName,
-                    isActive: isActive
-                }
-        })
-        .then(savedUser => {
-            console.log('PUT operation finished!' + savedUser);
-            response.status(200).send("The user is PUT in mongoDB!");
-        })
-        .catch(error => {
-            response.status(404).send(error.message);
-        });
+    User.findOne({_id: id}).then(user => {
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.isActive = isActive;
+
+        user.save()
+            .then(userSaved => {
+                response.status(201).send('User is saved!\n' + userSaved);
+            })
+            .catch(error => {
+                response.status(404).send('ERROR, data is not saved!');
+            });
+    })
 });
+
+// app.put('/users/:id', (request, response) => {
+//     const id = request.params.id;
+//     const firstName = request.body.firstName;
+//     const lastName = request.body.lastName;
+//     const isActive = request.body.isActive;
+//
+//     User.findByIdAndUpdate(id,
+//         {$set:
+//                 {
+//                     firstName: firstName,
+//                     lastName: lastName,
+//                     isActive: isActive
+//                 }
+//         })
+//         .then(savedUser => {
+//             console.log('PUT operation finished!' + savedUser);
+//             response.status(200).send("The user is PUT in mongoDB!");
+//         })
+//         .catch(error => {
+//             response.status(404).send(error.message);
+//         });
+// });
 
 const port = 8800 || process.env.PORT;
 app.listen(port, () => {
