@@ -2,10 +2,21 @@ const mongoose = require('mongoose');
 const User = require('./models/User');
 
 const express = require('express');
-
-mongoose.Promise = global.Promise;
+const bodyParser = require('body-parser');
 
 const app = express();
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+mongoose.connect('mongodb://localhost:27017/mongoose');
+mongoose.connection
+    .once('open', () => console.log('DB is CONNECTED!'))
+    .on('error', error => {
+        console.log('Could not connect to MongoDB', error);
+    });
+
+mongoose.Promise = global.Promise;
 
 app.get('/', (request, response) => {
     response.send('ROOT');
@@ -13,34 +24,61 @@ app.get('/', (request, response) => {
 
 app.post('/users', (request, response) => {
     const newUser = new User({
-        firstName: 'Mary',
-        lastName: 'Cool',
-        isActive: 1,
-
+        firstName: request.body.firstName,
+        lastName: request.body.lastName,
+        isActive: request.body.isActive
     });
 
     newUser.save().then(savedUser => {
         console.log('saved user');
+        response.status(201).send("USER SAVED!");
+    }).catch(error => {
+        console.log(error.message);
+        response.status(404).send("USER NOT SAVED!");
     });
-
-    response.send('User saved');
 });
 
-// mongoose.connect('mongodb://localhost:27017/mongoose');
-// mongoose.connection
-//     .once('open', () => console.log('DB is CONNECTED!'))
-//     .on('error', error => {
-//         console.log('Could not connect to MongoDB', error);
-//     });
-//
+app.get('/users', (request, response) => {
+    User.find({}).then(users => {
+        response.status(200).send(users);
+    })
+});
 
+app.patch('/users/:id', (request, response) => {
+    const id = request.params.id;
+    const firstName = request.body.firstName;
 
+    User.findByIdAndUpdate(
+        id,
+        {$set: {firstName: firstName}},
+        {new: true})
+        .then(savedUser => {
+            response.status(200).send('User is Modified!' + savedUser);
+        });
+});
 
-// newUser.save(function (error, dataSaved) {
-//     if (error) return console.log(error.message);
-//
-//     console.log(dataSaved);
-// });
+app.put('/users/:id', (request, response) => {
+    const id = request.params.id;
+    const firstName = request.body.firstName;
+    const lastName = request.body.lastName;
+    const isActive = request.body.isActive;
+
+    User.findByIdAndUpdate(id,
+        {$set:
+                {
+                    firstName: firstName,
+                    lastName: lastName,
+                    isActive: isActive
+                }
+        })
+        .then(savedUser => {
+            console.log('PUT operation finished!' + savedUser);
+            response.status(200).send("The user is PUT in mongoDB!");
+        })
+        .catch(error => {
+            response.status(404).send(error.message);
+        });
+});
 
 const port = 8800 || process.env.PORT;
 app.listen(port, () => {
