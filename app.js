@@ -75,7 +75,26 @@ app.put('/users/:id', (request, response) => {
             .catch(error => {
                 response.status(404).send('ERROR, data is not saved!');
             });
-    })
+    });
+});
+
+
+app.delete('/users/:id', (request, response) => {
+    const id = request.params.id;
+
+    User.findOne({_id: id})
+        .then(user => {
+            user.remove()
+                .then(userRemoved => {
+                    response.status(200).send('The user is deleted successfully! \n' + userRemoved);
+                })
+                .catch(error => {
+                    response.status(404).send('Data is not deleted!\n' + error.message)
+                })
+        })
+        .catch(error => {
+            response.status(404).send('ERROR! User is not found!' + error.message);
+        });
 });
 
 // app.put('/users/:id', (request, response) => {
