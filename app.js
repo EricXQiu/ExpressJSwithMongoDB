@@ -78,24 +78,33 @@ app.put('/users/:id', (request, response) => {
     });
 });
 
-
 app.delete('/users/:id', (request, response) => {
-    const id = request.params.id;
-
-    User.findOne({_id: id})
-        .then(user => {
-            user.remove()
-                .then(userRemoved => {
-                    response.status(200).send('The user is deleted successfully! \n' + userRemoved);
-                })
-                .catch(error => {
-                    response.status(404).send('Data is not deleted!\n' + error.message)
-                })
+    User.findByIdAndRemove({_id: request.params.id})
+        .then(userRemoved => {
+            response.status(200).send(`${userRemoved.firstName} is removed!`);
         })
         .catch(error => {
-            response.status(404).send('ERROR! User is not found!' + error.message);
+            response.status(404).send(error.message);
         });
 });
+
+// app.delete('/users/:id', (request, response) => {
+//     const id = request.params.id;
+//
+//     User.findOne({_id: id})
+//         .then(user => {
+//             user.remove()
+//                 .then(userRemoved => {
+//                     response.status(200).send('The user is deleted successfully! \n' + userRemoved);
+//                 })
+//                 .catch(error => {
+//                     response.status(404).send('Data is not deleted!\n' + error.message)
+//                 })
+//         })
+//         .catch(error => {
+//             response.status(404).send('ERROR! User is not found!' + error.message);
+//         });
+// });
 
 // app.put('/users/:id', (request, response) => {
 //     const id = request.params.id;
